@@ -1,10 +1,16 @@
 package com.library.bookgenerator.service.kafka;
 
+import com.library.bookgenerator.service.minio.MinioService;
 import jakarta.annotation.PostConstruct;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -13,10 +19,13 @@ import java.util.List;
 public class BookLoaderService {
 
     private static final String directoryPath = "D:\\Educational Mahsan\\bookGenerator\\src\\main\\resources";
+//    private static final String directoryPath = "/app/resources";
     private final KafkaProducerService kafkaProducerService;
+    private final MinioService minioService;
 
-    public BookLoaderService(KafkaProducerService kafkaProducerService) {
+    public BookLoaderService(KafkaProducerService kafkaProducerService, MinioService minioService) {
         this.kafkaProducerService = kafkaProducerService;
+        this.minioService = minioService;
     }
 
     public void processBooks() {
@@ -30,9 +39,12 @@ public class BookLoaderService {
             for (File file : files) {
                 if (file.isFile() && file.getName().endsWith(".txt")) {
                     try {
+                        InputStream stream =  new FileInputStream(file);
+                        MultipartFile multipartFileToSend = new MockMultipartFile("file", file.getName(), MediaType.TEXT_HTML_VALUE, stream);
+                        minioService.uploadFileToMinio(file.getName(),multipartFileToSend.getBytes());
                         processBookFile(file.toPath());
                     } catch (Exception ex) {
-                        System.out.println(ex.getMessage());
+                       throw new RuntimeException(ex.getMessage());
                     }
                 }
             }
@@ -44,16 +56,13 @@ public class BookLoaderService {
         if (!lines.isEmpty()) {
             String title = lines.get(0);
             String author = lines.get(1);
-
-            System.out.println("Title: " + title + " Author: " + author);
             sendToKafka(title, author);
         }
     }
 
-    private void sendToKafka(String title, String author) {
+    private void sendToKafka(String title, String owner) {
         System.out.println("sending to kafka");
-        String message = String.format("%s, %s", title, author);
-        kafkaProducerService.sendMessage(message);
+        kafkaProducerService.sendMessage(title.split(":")[1],  owner.split(":")[1]);
     }
 
 

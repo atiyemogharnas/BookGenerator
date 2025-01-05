@@ -3,11 +3,9 @@ package com.library.bookgenerator.controller;
 import com.library.bookgenerator.entity.Book;
 import com.library.bookgenerator.entity.DTO.BookRequestDTo;
 import com.library.bookgenerator.service.BookService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +21,7 @@ public class BookController {
     public ResponseEntity<String> createBookFile() {
         try {
             bookService.generateBooks("D:\\Educational Mahsan\\bookGenerator\\src\\main\\resources");
+//            bookService.generateBooks("/app/resources");
             return ResponseEntity.ok("Book files with content generated");
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());

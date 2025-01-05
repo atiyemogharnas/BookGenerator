@@ -1,5 +1,5 @@
 Title: compound effect
-Owner:  Darren Hardy
+Owner: Darren Hardy
 Creation Date: Sun Jan 01 00:00:00 GMT+03:30 2012
 
 Content:
